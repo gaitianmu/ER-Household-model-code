@@ -1,0 +1,332 @@
+SEIRplot <- function(pars_estimate, file_name, init_settings, panel_B_R_ylim=5) {
+  print(length(pars_estimate))
+  init_settings$days_to_fit <- 1:45
+ 
+  onset_obs_all <- init_settings$daily_new_case_all
+  onset_obs_one <- init_settings$daily_new_case
+  onset_obs_small <- init_settings$Sdaily_new_case
+  onset_obs_large<- init_settings$Ldaily_new_case
+
+  ptime <- 1:length(onset_obs_all)
+  mydate <- c(paste("Jan", 11:31), paste("Feb", 1:29), paste("Mar", 1:31), paste("Apr", 1:30), paste("May", 1:31), paste("Jun", 1:14))
+  #
+  
+  pdf(paste0("/home/gaixin/output/Figure_", file_name, ".pdf"), width = 9, height = 11)
+  par(mfrow = c(2, 2), mar = c(4, 5, 3, 2))
+  probbase1<- read.csv("/home/gaixin/data/roprobability-14.csv", row.names = 1)
+  prob1<-probbase1
+  qd<-prob1[8:52,]
+  ##########################################   Panel A  ##########################################################
+  estN_mat1 <- apply(pars_estimate, 1, function(x) SEIRsimu(pars = x, init_settings = init_settings, num_periods = 2)[, "Onset_expect"])
+  estN_mat2 <- apply(pars_estimate, 1, function(x) SEIRsimu(pars = x, init_settings = init_settings, num_periods = 2)[, "SOnset_expect"])
+  estN_mat3 <- apply(pars_estimate, 1, function(x) SEIRsimu(pars = x, init_settings = init_settings, num_periods = 2)[, "LOnset_expect"])
+  estN_mat4 <- apply(pars_estimate, 1, function(x) SEIRsimu(pars = x, init_settings = init_settings, num_periods = 2)[, "expect_Ea"])
+  estN_mat5 <- apply(pars_estimate, 1, function(x) SEIRsimu(pars = x, init_settings = init_settings, num_periods = 2)[, "expect_Ei"])
+  
+  estN_mat6 <- apply(pars_estimate, 1, function(x) SEIRsimu(pars = x, init_settings = init_settings, num_periods = 2)[, "expect_ESaP"])
+  estN_mat7 <- apply(pars_estimate, 1, function(x) SEIRsimu(pars = x, init_settings = init_settings, num_periods = 2)[, "expect_ESiP"])
+  estN_mat8 <- apply(pars_estimate, 1, function(x) SEIRsimu(pars = x, init_settings = init_settings, num_periods = 2)[,"expect_ESaH"])
+  estN_mat9 <- apply(pars_estimate, 1, function(x) SEIRsimu(pars = x, init_settings = init_settings, num_periods = 2)[, "expect_ESiH"])
+  
+  estN_mat10 <- apply(pars_estimate, 1, function(x) SEIRsimu(pars = x, init_settings = init_settings, num_periods = 2)[, "expect_ELaP"])
+  estN_mat11 <- apply(pars_estimate, 1, function(x) SEIRsimu(pars = x, init_settings = init_settings, num_periods = 2)[, "expect_ELiP"])
+  estN_mat12 <- apply(pars_estimate, 1, function(x) SEIRsimu(pars = x, init_settings = init_settings, num_periods = 2)[,"expect_ELaH"])
+  estN_mat13 <- apply(pars_estimate, 1, function(x) SEIRsimu(pars = x, init_settings = init_settings, num_periods = 2)[, "expect_ELiH"])
+  estA <- apply(pars_estimate, 1, function(x) SEIRsimu(pars = x, init_settings = init_settings, num_periods = 2)[, "expect_A"])
+  estAS <- apply(pars_estimate, 1, function(x) SEIRsimu(pars = x, init_settings = init_settings, num_periods = 2)[,"expect_AS"])
+  estAL <- apply(pars_estimate, 1, function(x) SEIRsimu(pars = x, init_settings = init_settings, num_periods = 2)[,"expect_AL"])
+  estN_mat<-estN_mat1+estN_mat2+estN_mat3
+  est_Add <- apply(pars_estimate, 1, function(x) SEIRsimu(pars = x, init_settings = init_settings, num_periods = 2)[, "Add"])
+ 
+ 
+  print("#########################simulation data stat######")
+  print("######################### one######")
+  westNo_mean<-round(apply(estN_mat1, 1, mean)*qd,0) 
+  westNo_up <- round(apply(estN_mat1, 1, function(x) quantile(x, 0.975)), 0)*qd
+  westNo_low <- round(apply(estN_mat1, 1, function(x) quantile(x, 0.025)), 0)*qd
+  print(westNo_mean)
+  print(westNo_low)
+ 
+  print("#########################small######")
+  westNs_mean<-round(apply(estN_mat2, 1, mean)*qd,0) 
+  westNs_up <- round(apply(estN_mat2, 1, function(x) quantile(x, 0.975)), 0)*qd
+  westNs_low <- round(apply(estN_mat2, 1, function(x) quantile(x, 0.025)), 0)*qd
+  print(westNs_mean)
+  print(westNs_low)
+
+  print("#########################large######")
+  westNl_mean<-round(apply(estN_mat3, 1, mean)*qd ,0)
+  westNl_up <- round(apply(estN_mat3, 1, function(x) quantile(x, 0.975)), 0)*qd
+  westNl_low <- round(apply(estN_mat3,1, function(x) quantile(x, 0.025)), 0)*qd
+  print(westNl_mean)
+  print(westNl_up)
+  print("#########################simulation data end######")
+  
+  
+  print("#########################Main Result###########################")
+  print("#########################ONE PART###########################")
+  estEa_mean <- round(apply(estN_mat4, 1, mean), 0)
+  estEi_mean <- round(apply(estN_mat5, 1, mean), 0)
+  estIO_mean <- round(apply(estN_mat1, 1, mean), 0)
+  estAO_mean <- round(apply(estA, 1, mean), 0)
+
+  print("---------infections by A-------")
+  print(sum(estEa_mean))
+  oac1=sum(estEa_mean[1:14])
+  print(sum(estEa_mean[1:14]))
+  oac2=sum(estEa_mean[15:45])
+  print(sum(estEa_mean[15:45]))
+  print("---------infections by I-------")
+  print(sum(estEi_mean))
+  oic1=sum(estEi_mean[1:14])
+  print(sum(estEi_mean[1:14]))
+  oic2=sum(estEi_mean[15:45])
+  print(sum(estEi_mean[15:45]))
+  print("---------the population of A-------")
+  print(sum(estAO_mean))
+  print("---------the population of I-------")
+  print(sum(estIO_mean))
+  print("#########################SMALL PART###########################")
+  estESaP_mean <- round(apply(estN_mat6, 1, mean), 0)
+  estESiP_mean <- round(apply(estN_mat7, 1, mean), 0)
+  estESaH_mean <- round(apply(estN_mat8, 1, mean), 0)
+  estESiH_mean <- round(apply(estN_mat9, 1, mean), 0)
+  estIS_mean <- round(apply(estN_mat2, 1, mean), 0)
+  estAS_mean <- round(apply(estAS , 1, mean), 0)
+  print("---------community transmission: infections by A-------")
+  print(sum(estESaP_mean))
+  sapc1=sum(estESaP_mean[1:14])
+  print(sum(estESaP_mean[1:14]))
+  sapc2=sum(estESaP_mean[15:45])
+  print(sum(estESaP_mean[15:45]))
+  print("---------community transmission: infections by I-------")
+  print(sum(estESiP_mean))
+  sipc1=sum(estESiP_mean[1:14])
+  print(sum(estESiP_mean[1:14]))
+  sipc2=sum(estESiP_mean[15:45])
+  print(sum(estESiP_mean[15:45]))
+  print("---------household transmission: infections by A-------")
+  print(sum(estESaH_mean))
+  sahc1=sum(estESaH_mean[1:14])
+  print(sum(estESaH_mean[1:14]))
+  sahc2=sum(estESaH_mean[15:45])
+  print(sum(estESaH_mean[15:45]))
+  print("---------household transmission: infections by I-------")
+  print(estESiH_mean)
+  print(sum(estESiH_mean))
+  
+  sihc1=sum(estESiH_mean[1:14])
+  print(sum(estESiH_mean[1:14]))
+  sihc2=sum(estESiH_mean[15:45])
+  print(sum(estESiH_mean[15:45]))
+  print("---------the population of A-------")
+  print(sum(estAS_mean))
+  print("---------the population of I-------")
+  print(sum(estIS_mean))
+  print("#########################LARGE PART###########################")
+  estELaP_mean <- round(apply(estN_mat10, 1, mean), 0)
+  estELiP_mean <- round(apply(estN_mat11, 1, mean), 0)
+  estELaH_mean <- round(apply(estN_mat12, 1, mean), 0)
+  estELiH_mean <- round(apply(estN_mat13, 1, mean), 0)
+  estIL_mean <- round(apply(estN_mat3, 1, mean), 0)
+  estAL_mean <- round(apply(estAL , 1, mean), 0)
+  print("---------community transmission: infections by A-------")
+  print(sum(estELaP_mean))
+  lapc1=sum(estELaP_mean[1:14])
+  print(sum(estELaP_mean[1:14]))
+  lapc2=sum(estELaP_mean[15:45])
+  print(sum(estELaP_mean[15:45]))
+  print("---------community transmission: infections by I-------")
+  print(sum(estELiP_mean))
+  lipc1=sum(estELiP_mean[1:14])
+  print(sum(estELiP_mean[1:14]))
+  lipc2=sum(estELiP_mean[15:45])
+  print(sum(estELiP_mean[15:45]))
+  print("---------household transmission: infections by A-------")
+  print(sum(estELaH_mean))
+  lahc1= sum(estELaH_mean[1:14])
+  print(sum(estELaH_mean[1:14]))
+  lahc2=sum(estELaH_mean[15:45])
+  print(sum(estELaH_mean[15:45]))
+  print("---------household transmission: infections by I-------")
+  print(sum(estELiH_mean))
+  lihc1=sum(estELiH_mean[1:14])
+  print(sum(estELiH_mean[1:14]))
+  lihc2=sum(estELiH_mean[15:45])
+  print(sum(estELiH_mean[15:45]))
+  print("---------the population of A-------")
+  print(sum(estAL_mean))
+  print("---------the population of I-------")
+  print(sum(estIL_mean))
+  print("#########################total infection ###########################")
+  print("---------frist period -------")
+  gr_1_mean<-apply( as.matrix((apply((estN_mat6[1:14,]+estN_mat7[1:14,]+estN_mat8[1:14,]+estN_mat9[1:14,]+estN_mat10[1:14,]+estN_mat11[1:14,]+estN_mat12[1:14,]+estN_mat13[1:14,]),2,sum)))  ,2,mean)
+  gr_1_up<- apply(as.matrix((apply((estN_mat6[1:14,]+estN_mat7[1:14,]+estN_mat8[1:14,]+estN_mat9[1:14,]+estN_mat10[1:14,]+estN_mat11[1:14,]+estN_mat12[1:14,]+estN_mat13[1:14,]),2,sum)))  ,2, function(x) quantile(x, 0.975))
+  gr_1_low<- apply( as.matrix((apply((estN_mat6[1:14,]+estN_mat7[1:14,]+estN_mat8[1:14,]+estN_mat9[1:14,]+estN_mat10[1:14,]+estN_mat11[1:14,]+estN_mat12[1:14,]+estN_mat13[1:14,]),2,sum)))  ,2, function(x) quantile(x, 0.025))
+  print(oac1+oic1+sapc1+sipc1+sahc1+sihc1+lapc1+lipc1+lahc1+lihc1)
+  print( gr_1_low )
+  print( gr_1_mean )
+  print( gr_1_up )
+  print("---------second period-------")
+  gr_2_mean<-apply( as.matrix((apply((estN_mat6[15:45,]+estN_mat7[15:45,]+estN_mat8[15:45,]+estN_mat9[15:45,]+estN_mat10[15:45,]+estN_mat11[15:45,]+estN_mat12[15:45,]+estN_mat13[15:45,]),2,sum)))  ,2,mean)
+  gr_2_up<- apply( as.matrix((apply((estN_mat6[15:45,]+estN_mat7[15:45,]+estN_mat8[15:45,]+estN_mat9[15:45,]+estN_mat10[15:45,]+estN_mat11[15:45,]+estN_mat12[15:45,]+estN_mat13[15:45,]),2,sum)))  ,2, function(x) quantile(x, 0.975))
+  gr_2_low<- apply( as.matrix((apply((estN_mat6[15:45,]+estN_mat7[15:45,]+estN_mat8[15:45,]+estN_mat9[15:45,]+estN_mat10[15:45,]+estN_mat11[15:45,]+estN_mat12[15:45,]+estN_mat13[15:45,]),2,sum)))  ,2, function(x) quantile(x, 0.025))
+  print(oac2+oic2+sapc2+sipc2+sahc2+sihc2+lapc2+lipc2+lahc2+lihc2)
+  print( gr_2_low )
+  print( gr_2_mean )
+  print( gr_2_up )
+  print("---------all-------")
+  gr_mean<-apply( as.matrix((apply((estN_mat6+estN_mat7+estN_mat8+estN_mat9+estN_mat10+estN_mat11+estN_mat12+estN_mat13),2,sum)))  ,2,mean)
+  gr_up<- apply( as.matrix((apply((estN_mat6+estN_mat7+estN_mat8+estN_mat9+estN_mat10+estN_mat11+estN_mat12+estN_mat13),2,sum)))  ,2, function(x) quantile(x, 0.975))
+  gr_low<- apply( as.matrix((apply((estN_mat6+estN_mat7+estN_mat8+estN_mat9+estN_mat10+estN_mat11+estN_mat12+estN_mat13),2,sum)))  ,2, function(x) quantile(x, 0.025))
+  print( gr_low )
+  print( gr_mean )
+  print( gr_up )
+ 
+  print("##################Contribution of household transmission##################")
+  
+  print("---------frist period-------")
+  ratio_1_mean<-apply( as.matrix((apply((estN_mat8[1:14,]+estN_mat9[1:14,]+estN_mat12[1:14,]+estN_mat13[1:14,]),2,sum)/apply((estN_mat6[1:14,]+estN_mat7[1:14,]+estN_mat8[1:14,]+estN_mat9[1:14,]+estN_mat10[1:14,]+estN_mat11[1:14,]+estN_mat12[1:14,]+estN_mat13[1:14,]),2,sum)))  ,2,mean)
+  ratio_1_up<- apply( as.matrix((apply((estN_mat8[1:14,]+estN_mat9[1:14,]+estN_mat12[1:14,]+estN_mat13[1:14,]),2,sum)/apply((estN_mat6[1:14,]+estN_mat7[1:14,]+estN_mat8[1:14,]+estN_mat9[1:14,]+estN_mat10[1:14,]+estN_mat11[1:14,]+estN_mat12[1:14,]+estN_mat13[1:14,]),2,sum)))  ,2, function(x) quantile(x, 0.975))
+  ratio_1_low<- apply( as.matrix((apply((estN_mat8[1:14,]+estN_mat9[1:14,]+estN_mat12[1:14,]+estN_mat13[1:14,]),2,sum)/apply((estN_mat6[1:14,]+estN_mat7[1:14,]+estN_mat8[1:14,]+estN_mat9[1:14,]+estN_mat10[1:14,]+estN_mat11[1:14,]+estN_mat12[1:14,]+estN_mat13[1:14,]),2,sum)))  ,2, function(x) quantile(x, 0.025))
+  ratio_2_mean<-apply( as.matrix((apply((estN_mat8[15:45,]+estN_mat9[15:45,]+estN_mat12[15:45,]+estN_mat13[15:45,]),2,sum)/apply((estN_mat6[15:45,]+estN_mat7[15:45,]+estN_mat8[15:45,]+estN_mat9[15:45,]+estN_mat10[15:45,]+estN_mat11[15:45,]+estN_mat12[15:45,]+estN_mat13[15:45,]),2,sum)))  ,2,mean)
+  ratio_2_up<- apply( as.matrix((apply((estN_mat8[15:45,]+estN_mat9[15:45,]+estN_mat12[15:45,]+estN_mat13[15:45,]),2,sum)/apply((estN_mat6[15:45,]+estN_mat7[15:45,]+estN_mat8[15:45,]+estN_mat9[15:45,]+estN_mat10[15:45,]+estN_mat11[15:45,]+estN_mat12[15:45,]+estN_mat13[15:45,]),2,sum)))  ,2, function(x) quantile(x, 0.975))
+  ratio_2_low<- apply( as.matrix((apply((estN_mat8[15:45,]+estN_mat9[15:45,]+estN_mat12[15:45,]+estN_mat13[15:45,]),2,sum)/apply((estN_mat6[15:45,]+estN_mat7[15:45,]+estN_mat8[15:45,]+estN_mat9[15:45,]+estN_mat10[15:45,]+estN_mat11[15:45,]+estN_mat12[15:45,]+estN_mat13[15:45,]),2,sum)))  ,2, function(x) quantile(x, 0.025))
+  ratio_1_mid<-apply( as.matrix((apply((estN_mat8[1:14,]+estN_mat9[1:14,]+estN_mat12[1:14,]+estN_mat13[1:14,]),2,sum)/apply((estN_mat6[1:14,]+estN_mat7[1:14,]+estN_mat8[1:14,]+estN_mat9[1:14,]+estN_mat10[1:14,]+estN_mat11[1:14,]+estN_mat12[1:14,]+estN_mat13[1:14,]),2,sum)))  ,2,function(x) quantile(x, 0.5))
+  ratio_2_mid<-apply( as.matrix((apply((estN_mat8[15:45,]+estN_mat9[15:45,]+estN_mat12[15:45,]+estN_mat13[15:45,]),2,sum)/apply((estN_mat6[15:45,]+estN_mat7[15:45,]+estN_mat8[15:45,]+estN_mat9[15:45,]+estN_mat10[15:45,]+estN_mat11[15:45,]+estN_mat12[15:45,]+estN_mat13[15:45,]),2,sum)))  ,2,function(x) quantile(x, 0.5))
+  print( ratio_1_low )
+  print( ratio_1_mean )
+  print( ratio_1_up )
+  #print(ratio_1_mid)
+  print("---------second period-------")
+  print( ratio_2_low )
+  print( ratio_2_mean )
+  print( ratio_2_up )
+  #print(ratio_2_mid)
+  print("---------all-------")
+  
+  ratio_mean<-apply( as.matrix((apply((estN_mat8+estN_mat9+estN_mat12+estN_mat13),2,sum)/apply((estN_mat6+estN_mat7+estN_mat8+estN_mat9+estN_mat10+estN_mat11+estN_mat12+estN_mat13),2,sum)))  ,2,mean)
+  ratio_up<- apply( as.matrix((apply((estN_mat8+estN_mat9+estN_mat12+estN_mat13),2,sum)/apply((estN_mat6+estN_mat7+estN_mat8+estN_mat9+estN_mat10+estN_mat11+estN_mat12+estN_mat13),2,sum)))  ,2, function(x) quantile(x, 0.975))
+  ratio_low<- apply( as.matrix((apply((estN_mat8+estN_mat9+estN_mat12+estN_mat13),2,sum)/apply((estN_mat6+estN_mat7+estN_mat8+estN_mat9+estN_mat10+estN_mat11+estN_mat12+estN_mat13),2,sum)))  ,2, function(x) quantile(x, 0.025))
+  ratio_mid<-apply( as.matrix((apply((estN_mat8+estN_mat9+estN_mat12+estN_mat13),2,sum)/apply((estN_mat6+estN_mat7+estN_mat8+estN_mat9+estN_mat10+estN_mat11+estN_mat12+estN_mat13),2,sum)))  ,2,function(x) quantile(x, 0.5))
+  print(ratio_mean)
+  print(ratio_up)
+  print(ratio_low)
+  #print(ratio_mid)
+  #print("---------all household /community-------")
+  #sar_mean<-apply( as.matrix((apply((estN_mat8+estN_mat9+estN_mat12+estN_mat13),2,sum)/apply((estN_mat6+estN_mat7+estN_mat10+estN_mat11),2,sum)))  ,2,mean)
+  #sar_up<- apply( as.matrix((apply((estN_mat8+estN_mat9+estN_mat12+estN_mat13),2,sum)/apply((estN_mat6+estN_mat7+estN_mat10+estN_mat11),2,sum)))  ,2, function(x) quantile(x, 0.975))
+  #sar_low<- apply( as.matrix((apply((estN_mat8+estN_mat9+estN_mat12+estN_mat13),2,sum)/apply((estN_mat6+estN_mat7+estN_mat10+estN_mat11),2,sum)))  ,2, function(x) quantile(x, 0.025))
+  #sar_mid<- apply( as.matrix((apply((estN_mat8+estN_mat9+estN_mat12+estN_mat13),2,sum)/apply((estN_mat6+estN_mat7+estN_mat10+estN_mat11),2,sum)))  ,2, function(x) quantile(x, 0.5))
+  
+  print("#########################Household SAR -start###########################")
+  est_ATCJ <- apply(pars_estimate, 1, function(x) SEIRsimu(pars = x, init_settings = init_settings, num_periods = 2)[, "ATCJ"])
+  SSAR_MID<-apply( as.matrix((apply((estN_mat8+estN_mat9+estN_mat12+estN_mat13),2,sum)/apply(( est_ATCJ ),2,sum)))  ,2,mean)
+  SSAR_UP<-apply( as.matrix((apply((estN_mat8+estN_mat9+estN_mat12+estN_mat13),2,sum)/apply(( est_ATCJ ),2,sum)))  ,2,function(x) quantile(x, 0.975))
+  SSAR_LOW<-apply( as.matrix((apply((estN_mat8+estN_mat9+estN_mat12+estN_mat13),2,sum)/apply(( est_ATCJ ),2,sum)))  ,2, function(x) quantile(x, 0.025))
+  print(SSAR_MID)
+  print(SSAR_UP)
+  print(SSAR_LOW)
+  
+  print("#########################Household SAR -end###########################")
+  
+  #print(sar_mean)
+  #print(sar_up)
+  #print(sar_low)
+  #print(sar_mid)
+  print("#########################all 3 types population###########################")
+  print("---------No-weight -------")
+  print(sum(round(apply(estN_mat1, 1, mean), 0)))
+  print(sum(round(apply(estN_mat2, 1, mean), 0)))
+  print(sum(round(apply(estN_mat3, 1, mean), 0)))
+  print("---------Weight-------")
+  print(sum(westNo_mean))
+  print(sum(westNs_mean[1:14]))
+  print(sum(westNl_mean[1:14]))
+  print(sum(westNs_mean[15:45]))
+  print(sum(westNl_mean[15:45]))
+  
+  estN_mean <- round(apply(estN_mat, 1, mean), 0)###P->I
+  westN_mean<- estN_mean*qd 
+  westN_up <- round(apply(estN_mat, 1, function(x) quantile(x, 0.975)), 0)*qd
+  westN_low <- round(apply(estN_mat, 1, function(x) quantile(x, 0.025)), 0)*qd
+  
+  print("#########################add value-start#####################")
+  
+  add_mean <- round(apply(est_Add, 1, mean), 0)###P->I
+  wadd_mean<- add_mean*qd 
+  wadd_up <- round(apply(est_Add, 1, function(x) quantile(x, 0.975)), 0)*qd
+  wadd_low <- round(apply(est_Add, 1, function(x) quantile(x, 0.025)), 0)*qd
+  print(wadd_mean)
+  print(sum(wadd_mean))
+  print(sum(wadd_up))
+  print(sum(wadd_low))
+  print("#########################add value-end#####################")
+  
+  plot(ptime, westN_mean, ylim = c(0, max(westN_up, onset_obs_all) * 1.05), xlab = "", ylab = "", type = "p", col = "white", pch = 16, xaxt="n", cex = 0.5)
+  
+  mtext("Onset date (2020)", side = 1, line  = 3, cex = 1.01)
+ 
+  mtext("Ascertained cases", side = 2, line = 3, cex = 1.01)
+
+  axis(1, at = c(1,13, 17), labels = mydate[c(1,13, 17)])
+ 
+  abline(v = c(1,13, 17), lty = 3, lwd = 3, col = "orange")
+ 
+  polygon(c(ptime[1:45], rev(ptime[1:45])), c(westN_up[1:45], rev(westN_low[1:45])), col = "#CEE6F4FF", border = NA)
+  
+  points(ptime[1:45], westN_mean[1:45], col = "#3742D2FF", pch = 16, cex = 0.8)
+  
+  points(ptime, onset_obs_all, col = "black", pch = 3, cex = 0.8)
+  
+  print("============error train=============")
+  errortrain<-(westN_mean[1:45]-onset_obs_all)^2
+  print(errortrain)
+  print("============error train=============")
+  print(sum(errortrain))
+  print("============Total=============")
+  
+
+  print(sum(westN_up))
+  print(sum(westN_mean))
+  print(sum(westN_low))
+  print(sum(estN_mean))
+
+  westI_up<- round(apply( as.matrix(apply(qd*estN_mat,2,sum))  , 2, function(x) quantile(x, 0.975)), 5)
+  westI_me<- round(apply( as.matrix(apply(qd*estN_mat,2,sum)), 2, mean), 5)
+  westI_low<- round(apply( as.matrix(apply(qd*estN_mat,2,sum)), 2, function(x) quantile(x, 0.025)), 5)
+
+  text(par()$usr[1] - (par()$usr[2] -par()$usr[1]) * 0.12, par()$usr[4] + (par()$usr[4] - par()$usr[3]) * 0.06, labels = "A", xpd = T, cex = 2)
+  ####fig-2-4#########
+  plot(ptime, westNo_mean, ylim = c(0, max(westNo_up, onset_obs_one) * 1.05), xlab = "", ylab = "", type = "p", col = "white", pch = 15, xaxt="n", cex = 0.5)
+  polygon(c(ptime[1:45], rev(ptime[1:45])), c(westNo_up[1:45], rev(westNo_low[1:45])), col = "#CEE6F4FF", border = NA)
+  points(ptime[1:45], westNo_mean[1:45], col = "red", pch = 16, cex = 0.8)
+  points(ptime, onset_obs_one, col = "black", pch = 3, cex = 0.8)
+  wfit<-cbind(westNo_mean,westNo_up,westNo_low,westNs_mean,westNs_up,westNs_low,westNl_mean,westNl_up,westNl_low)
+  #print(ob_one)
+  #write.csv(wfit, paste0("/home/gaixin/output/wfit_osl_",file_name,".csv"), quote = F, row.names = F)
+  text(par()$usr[1] - (par()$usr[2] -par()$usr[1]) * 0.12, par()$usr[4] + (par()$usr[4] - par()$usr[3]) * 0.06, labels = "One", xpd = T, cex = 2)
+  plot(ptime, westNs_mean, ylim = c(0, max(westNs_up, onset_obs_small) * 1.05), xlab = "", ylab = "", type = "p", col = "white", pch = 15, xaxt="n", cex = 0.5)
+  polygon(c(ptime[1:45], rev(ptime[1:45])), c(westNs_up[1:45], rev(westNs_low[1:45])), col = "#CEE6F4FF", border = NA)
+  points(ptime[1:45], westNs_mean[1:45], col = "green", pch = 16, cex = 0.8)
+  points(ptime, onset_obs_small, col = "black", pch = 3, cex = 0.8)
+  text(par()$usr[1] - (par()$usr[2] -par()$usr[1]) * 0.12, par()$usr[4] + (par()$usr[4] - par()$usr[3]) * 0.06, labels = "Small", xpd = T, cex = 2)
+  plot(ptime, westNl_mean, ylim = c(0, max(westNl_up, onset_obs_large) * 1.05), xlab = "", ylab = "", type = "p", col = "white", pch = 15, xaxt="n", cex = 0.5)
+  polygon(c(ptime[1:45], rev(ptime[1:45])), c(westNl_up[1:45], rev(westNl_low[1:45])), col = "#CEE6F4FF", border = NA)
+  points(ptime[1:45], westNl_mean[1:45], col = "blue", pch = 16, cex = 0.8)
+  points(ptime, onset_obs_large, col = "black", pch = 3, cex = 0.8)
+  text(par()$usr[1] - (par()$usr[2] -par()$usr[1]) * 0.12, par()$usr[4] + (par()$usr[4] - par()$usr[3]) * 0.06, labels = "Large", xpd = T, cex = 2)
+  
+  #pr<-dpois(onset_obs_one, westNo_mean[1:45])*dpois( onset_obs_large,westNl_mean[1:45])*dpois(onset_obs_small,westNs_mean[1:45])
+  
+  #pa=log(dpois(onset_obs_one, westNo_mean[1:45])+0.000001)
+  #pb=log(dpois(onset_obs_large,westNl_mean[1:45]))
+  #pc=log(dpois(onset_obs_small,westNs_mean[1:45])+0.000001)
+  #print(sum(pa+pb+pc))
+  
+  
+  dev.off()
+  
+  
+  
+}
